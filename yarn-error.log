@@ -1,0 +1,47 @@
+Arguments: 
+  /Users/gmoraleda/.nvm/versions/node/v16.3.0/bin/node /opt/homebrew/Cellar/yarn/1.22.19/libexec/bin/yarn.js global dir
+
+PATH: 
+  /Users/gmoraleda/.amplify/bin:/Users/gmoraleda/.nvm/versions/node/v16.3.0/bin:/Users/gmoraleda/.pyenv/shims:/Users/gmoraleda/.rbenv/shims:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Library/Apple/usr/bin:/Applications/Privileges.app/Contents/Resources:/Users/gmoraleda/Developer/git
+
+Yarn version: 
+  1.22.19
+
+Node version: 
+  16.3.0
+
+Platform: 
+  darwin arm64
+
+Trace: 
+  Error: Failed to replace env in config: ${GITHUB_TOKEN}
+      at /opt/homebrew/Cellar/yarn/1.22.19/libexec/lib/cli.js:94933:13
+      at String.replace (<anonymous>)
+      at envReplace (/opt/homebrew/Cellar/yarn/1.22.19/libexec/lib/cli.js:94928:16)
+      at Function.normalizeConfig (/opt/homebrew/Cellar/yarn/1.22.19/libexec/lib/cli.js:31938:69)
+      at NpmRegistry.<anonymous> (/opt/homebrew/Cellar/yarn/1.22.19/libexec/lib/cli.js:31968:34)
+      at Generator.next (<anonymous>)
+      at step (/opt/homebrew/Cellar/yarn/1.22.19/libexec/lib/cli.js:310:30)
+      at /opt/homebrew/Cellar/yarn/1.22.19/libexec/lib/cli.js:321:13
+
+npm manifest: 
+  {
+    "name": "toy-slack-bot",
+    "version": "1.0.0",
+    "description": "A sample Node.js Slackbot",
+    "main": "index.js",
+    "scripts": {
+      "start": "node index.js"
+    },
+    "dependencies": {
+      "beepboop-botkit": "^1.4.0",
+      "botbuilder-adapter-slack": "^1.0.14",
+      "botkit": "~0.1.1"
+    }
+  }
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  No lockfile
