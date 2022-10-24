@@ -2,7 +2,7 @@
 // |__) /  \  |  |__/ |  |
 // |__) \__/  |  |  \ |  |
 
-// This is the main file for the Capmo Slack Bot bot.
+// This is the main file for the Capmo Slack bot.
 
 // Import Botkit's core features
 const { Botkit } = require("botkit");
