@@ -75,23 +75,23 @@ const controller = new Botkit({
 //   );
 // }
 
-// Once the bot has booted up its internal services, you can use them to do stuff.
-controller.ready(() => {
-  // load traditional developer-created local custom feature modules
-  //   controller.loadModules(__dirname + "/features");
+// // Once the bot has booted up its internal services, you can use them to do stuff.
+// controller.ready(() => {
+//   // load traditional developer-created local custom feature modules
+//   //   controller.loadModules(__dirname + "/features");
 
-  /* catch-all that uses the CMS to trigger dialogs */
-  if (controller.plugins.cms) {
-    // controller.on("message,direct_message", async (bot, message) => {
-    //   let results = false;
-    //   //   results = await controller.plugins.cms.testTrigger(bot, message);
-    //   if (results !== false) {
-    //     // do not continue middleware!
-    //     return false;
-    //   }
-    // });
-  }
-});
+//   /* catch-all that uses the CMS to trigger dialogs */
+//   if (controller.plugins.cms) {
+//     // controller.on("message,direct_message", async (bot, message) => {
+//     //   let results = false;
+//     //   //   results = await controller.plugins.cms.testTrigger(bot, message);
+//     //   if (results !== false) {
+//     //     // do not continue middleware!
+//     //     return false;
+//     //   }
+//     // });
+//   }
+// });
 
 // Handle commands directed at the bot
 controller.on("direct_message,direct_mention,mention", async (bot, message) => {
@@ -101,7 +101,43 @@ controller.on("direct_message,direct_mention,mention", async (bot, message) => {
   }
   // Help / Commands
   if (message.text.includes("help") || message.text.includes("commands")) {
-    await bot.reply(message, `Hello!`);
+    await bot.reply(message, "Here are the commands I can do:");
+    await bot.reply(message, "hello - I will say hello back to you");
+    await bot.reply(
+      message,
+      "`help` or `commands` - I will list the commands I can do"
+    );
+    await bot.reply(
+      message,
+      "`test account` - I will tell you how to create test accounts"
+    );
+  }
+
+  // Instructions to create test account
+  if (message.text.includes("test account")) {
+    await bot.reply(
+      message,
+      "To create a test account, please follow these steps:"
+    );
+    await bot.reply(
+      message,
+      "1. Go to https://app.dev.capmo.de/signup or https://app.staging.capmo.de/signup"
+    );
+    await bot.reply(message, "2. Enter your details");
+    await bot.reply(message, "3. Click on the link in the email you receive");
+    await bot.reply(message, "");
+    await bot.reply(
+      message,
+      "You can use your Campo account to create multiple test accounts using aliases."
+    );
+    await bot.reply(
+      message,
+      "For example, if your email address is `name.surname@capmo.de`"
+    );
+    await bot.reply(
+      message,
+      "You can add `+test1` to the end of your email address to create a new test account: `name.surname+test1@capmo.de`"
+    );
   }
 });
 
