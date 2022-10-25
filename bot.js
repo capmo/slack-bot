@@ -102,10 +102,15 @@ controller.on("direct_message,direct_mention,mention", async (bot, message) => {
   // Help / Commands
   if (message.text.includes("help") || message.text.includes("commands")) {
     const messages = [
-      "Hello! I'm Capmo's Slack bot. I can help you with the following commands:",
+      "Hello!",
+      "I'm Capmo's Slack bot. I can help you with the following commands:",
+      "",
       "- `hello` - I'll say hello back to you",
       "- `help` or `commands` - I'll show you this list of commands",
       "- `test account` - I'll tell you how to create a test account",
+      "",
+      "",
+      "I'm still learning, so if you have any suggestions, please <https://github.com/capmo/slack-bot/issues/new/choose | let me know>.",
     ];
     await bot.reply(message, messages.join("\n"));
   }
@@ -114,13 +119,14 @@ controller.on("direct_message,direct_mention,mention", async (bot, message) => {
   if (message.text.includes("test account")) {
     const messages = [
       "To create a test account, please follow these steps:",
+      "",
       "1. Go to https://app.dev.capmo.de/signup or https://app.staging.capmo.de/signup",
       "2. Enter your details",
       "3. Click on the link in the email you receive",
       "",
       "You can use your Campo account to create multiple test accounts using aliases.",
       "For example, if your email address is `name.surname@capmo.de`",
-      "You can add `+test1` to the end of your email address to create a new test account: `",
+      "You can add `+test1` to the end of your email address to create a new test account:",
       "`name.surname+test1@capmo.de`",
     ];
     await bot.reply(message, messages.join("\n"));
