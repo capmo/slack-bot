@@ -96,48 +96,34 @@ const controller = new Botkit({
 // Handle commands directed at the bot
 controller.on("direct_message,direct_mention,mention", async (bot, message) => {
   // Hello
-  if (message.text.includes("hello")) {
+  if (message.text.includes("hello") || message.text.includes("hi")) {
     await bot.reply(message, greetings.greet());
   }
   // Help / Commands
   if (message.text.includes("help") || message.text.includes("commands")) {
-    await bot.reply(message, "Here are the commands I can do:");
-    await bot.reply(message, "- `hello` - I will say hello back to you");
-    await bot.reply(
-      message,
-      "- `help` or `commands` - I will list the commands I can do"
-    );
-    await bot.reply(
-      message,
-      "- `test account` - I will tell you how to create test accounts"
-    );
+    const messages = [
+      "Hello! I'm Capmo's Slack bot. I can help you with the following commands:",
+      "- `hello` - I'll say hello back to you",
+      "- `help` or `commands` - I'll show you this list of commands",
+      "- `test account` - I'll tell you how to create a test account",
+    ];
+    await bot.reply(message, messages.join("\n"));
   }
 
   // Instructions to create test account
   if (message.text.includes("test account")) {
-    await bot.reply(
-      message,
-      "To create a test account, please follow these steps:"
-    );
-    await bot.reply(
-      message,
-      "1. Go to https://app.dev.capmo.de/signup or https://app.staging.capmo.de/signup"
-    );
-    await bot.reply(message, "2. Enter your details");
-    await bot.reply(message, "3. Click on the link in the email you receive");
-    await bot.reply(message, "");
-    await bot.reply(
-      message,
-      "You can use your Campo account to create multiple test accounts using aliases."
-    );
-    await bot.reply(
-      message,
-      "For example, if your email address is `name.surname@capmo.de`"
-    );
-    await bot.reply(
-      message,
-      "You can add `+test1` to the end of your email address to create a new test account: `name.surname+test1@capmo.de`"
-    );
+    const messages = [
+      "To create a test account, please follow these steps:",
+      "1. Go to https://app.dev.capmo.de/signup or https://app.staging.capmo.de/signup",
+      "2. Enter your details",
+      "3. Click on the link in the email you receive",
+      "",
+      "You can use your Campo account to create multiple test accounts using aliases.",
+      "For example, if your email address is `name.surname@capmo.de`",
+      "You can add `+test1` to the end of your email address to create a new test account: `",
+      "`name.surname+test1@capmo.de`",
+    ];
+    await bot.reply(message, messages.join("\n"));
   }
 });
 
