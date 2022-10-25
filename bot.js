@@ -102,14 +102,14 @@ controller.on("direct_message,direct_mention,mention", async (bot, message) => {
   // Help / Commands
   if (message.text.includes("help") || message.text.includes("commands")) {
     await bot.reply(message, "Here are the commands I can do:");
-    await bot.reply(message, "hello - I will say hello back to you");
+    await bot.reply(message, "- `hello` - I will say hello back to you");
     await bot.reply(
       message,
-      "`help` or `commands` - I will list the commands I can do"
+      "- `help` or `commands` - I will list the commands I can do"
     );
     await bot.reply(
       message,
-      "`test account` - I will tell you how to create test accounts"
+      "- `test account` - I will tell you how to create test accounts"
     );
   }
 
