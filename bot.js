@@ -143,7 +143,7 @@ controller.on("direct_message,direct_mention,mention", async (bot, message) => {
 
 // Handle private messages sent to the bot directly
 controller.on("direct_message", async (bot, message) => {
-  await bot.reply(message, "You are talking to me directly");
+  //   await bot.reply(message, "You are talking to me directly");
 });
 
 controller.webserver.get("/", (req, res) => {
