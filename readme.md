@@ -1,9 +1,10 @@
 # Capmo's Slack Bot
 
 Any contribution, idea or suggestion is welcomed.
+
 Feel free to checkout the project, play around and open a PR.
 
----
+## Botkit
 
 This is a Botkit starter kit for slack, created with the [Yeoman generator](https://github.com/howdyai/botkit/tree/master/packages/generator-botkit#readme).
 
