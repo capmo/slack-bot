@@ -4,7 +4,7 @@
   "description": "",
   "main": "bot.js",
   "scripts": {
-    "start": "node bot.js",
+    "start": "nodemon bot.js",
     "test": "jest"
   },
   "dependencies": {
@@ -16,6 +16,7 @@
     "random-greetings": "^1.0.5"
   },
   "devDependencies": {
-    "jest": "^29.2.2"
+    "jest": "^29.2.2",
+    "nodemon": "^2.0.20"
   }
 }

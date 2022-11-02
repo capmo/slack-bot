@@ -4,17 +4,10 @@
 
 // This is the main file for the Capmo Slack bot.
 
-// Import Botkit's core features
 const { Botkit } = require("botkit");
 const { BotkitCMSHelper } = require("botkit-plugin-cms");
 const greetings = require("random-greetings");
 const axios = require("axios");
-const dotenv = require("dotenv");
-
-dotenv.config();
-
-// Import a platform-specific adapter for slack.
-
 const {
   SlackAdapter,
   SlackMessageTypeMiddleware,
@@ -32,6 +25,17 @@ if (process.env.MONGO_URI) {
     url: process.env.MONGO_URI,
   });
 }
+
+async function getBotUserId() {
+  const response = await axios.get("https://slack.com/api/auth.test", {
+    headers: {
+      Authorization: `Bearer ${process.env.BOT_TOKEN}`,
+    },
+  });
+  return response.data.user_id;
+}
+
+const botId = getBotUserId();
 
 const adapter = new SlackAdapter({
   // REMOVE THIS OPTION AFTER YOU HAVE CONFIGURED YOUR APP!
@@ -112,7 +116,7 @@ controller.on("direct_message,direct_mention,mention", async (bot, message) => {
       "- `hello` - I'll say hello back to you",
       "- `help` or `commands` - I'll show you this list of commands",
       "- `test account` - I'll tell you how to create a test account",
-      "- `pick` - I'll pick a random member",
+      "- `pick` - I'll pick a random member from the current channel or from a subteam if you mention it (e.g. `pick @mobile`)",
       "",
       "",
       "I'm still learning, so if you have any suggestions, please <https://github.com/capmo/slack-bot/issues/new/choose | let me know>.",
@@ -137,31 +141,57 @@ controller.on("direct_message,direct_mention,mention", async (bot, message) => {
     await bot.reply(message, messages.join("\n"));
   }
 
-  // Picks member from user group
-  if (message.text.includes("pick from")) {
-    const userGroup = message.text.split("pick from")[1].trim();
-    console.log(userGroup);
-    const members = await getGroupMembers(userGroup);
-
-    if (members.length === 0) {
-      await bot.reply(
-        message,
-        `I couldn't find any members in the ${userGroup} user group. Try using the group handle instead of the name.`
-      );
+  // Pick user
+  if (message.text.includes("pick")) {
+    if (message.text.includes("<!subteam^")) {
+      await pickFromSubteam();
     } else {
-      const randomMember = members[Math.floor(Math.random() * members.length)];
-      await bot.reply(message, `I picked <@${randomMember}>`);
+      await pickFromCurrentChannel();
     }
   }
 
-  // Pick from current channel
-  if (message.text.includes("pick")) {
+  async function pickFromCurrentChannel() {
     const members = await getChannelMembers(message.channel);
-    if (members.length === 0) {
-      await bot.reply(message, `I couldn't find any members in this channel.`);
+    if (members !== undefined) {
+      const filteredMembers = members.filter((member) => member !== botId);
+      if (filteredMembers.length === 0) {
+        await bot.reply(
+          message,
+          `I couldn't find any members in the current channel.`
+        );
+      } else {
+        const randomMember =
+          filteredMembers[Math.floor(Math.random() * filteredMembers.length)];
+        await bot.reply(message, `I picked <@${randomMember}>`);
+      }
     } else {
-      const randomMember = members[Math.floor(Math.random() * members.length)];
-      await bot.reply(message, `I picked <@${randomMember}>`);
+      await bot.reply(
+        message,
+        `I couldn't find any members in the current channel. Check this is not a private conversation.`
+      );
+    }
+  }
+
+  async function pickFromSubteam() {
+    const subteamId = message.text.split("<!subteam^")[1].split("|")[0];
+    if (subteamId !== undefined) {
+      const members = await getSubteamMembers(subteamId);
+      const filteredMembers = members.filter((member) => member !== botId);
+      if (filteredMembers.length === 0) {
+        await bot.reply(
+          message,
+          `I couldn't find any members in the ${subteamId} subteam.`
+        );
+      } else {
+        const randomMember =
+          filteredMembers[Math.floor(Math.random() * filteredMembers.length)];
+        await bot.reply(message, `I picked <@${randomMember}>`);
+      }
+    } else {
+      await bot.reply(
+        message,
+        "I couldn't find any members in the mentioned group. You can use `pick` without mentioning a group to pick from the current channel."
+      );
     }
   }
 });
@@ -233,6 +263,25 @@ async function getBotUserByTeam(teamId) {
   } else {
     console.error("Team not found in userCache: ", teamId);
   }
+}
+
+async function getSubteamMembers(subteamId) {
+  const members = [];
+  const result = await axios.get(
+    "https://slack.com/api/usergroups.users.list",
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.BOT_TOKEN}`,
+      },
+      params: {
+        usergroup: subteamId,
+      },
+    }
+  );
+  if (result.data.ok) {
+    members.push(...result.data.users);
+  }
+  return members;
 }
 
 async function getChannelMembers(channelId) {
