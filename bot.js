@@ -247,7 +247,7 @@ async function getChannelMembers(channelId) {
 
 // Get members of a Slack group
 async function getGroupMembers(group) {
-  const token = env.BOT_TOKENl;
+  const token = process.env.BOT_TOKEN;
   const response = await axios.get(
     `https://slack.com/api/usergroups.users.list?token=${token}`
   );
