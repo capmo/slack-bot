@@ -146,9 +146,15 @@ controller.on("direct_message,direct_mention,mention", async (bot, message) => {
       async (bot, message) => {
         const group = message.text;
         const members = await getGroupMembers(group);
-        const randomMember =
-          members[Math.floor(Math.random() * members.length)];
-        await bot.reply(message, randomMember);
+        if (members.length > 0) {
+          const member = members[Math.floor(Math.random() * members.length)];
+          await bot.reply(message, `I picked <@${member}>`);
+        } else {
+          await bot.reply(
+            message,
+            `I couldn't find any members in that group. Try using the group handle`
+          );
+        }
       }
     );
   }
@@ -221,4 +227,25 @@ async function getBotUserByTeam(teamId) {
   } else {
     console.error("Team not found in userCache: ", teamId);
   }
+}
+
+// Get members of a Slack group
+async function getGroupMembers(group) {
+  const token = env.BOT_TOKENl;
+  const response = await axios.get(
+    `https://slack.com/api/usergroups.users.list?token=${token}`
+  );
+  // Look for group name in handle
+  const groupHandle = response.data.usergroups.find(
+    (usergroup) => usergroup.handle === group
+  );
+  // Get group ID
+  const groupId = groupHandle.id;
+  // Get members of group
+  const members = await axios.get(
+    `https://slack.com/api/usergroups.users.list?token=${token}&usergroup=${groupId}`
+  );
+  // Get user names of members
+  const memberNames = members.data.users.map((member) => member.name);
+  return memberNames;
 }
