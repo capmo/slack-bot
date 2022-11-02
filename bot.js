@@ -134,29 +134,30 @@ controller.on("direct_message,direct_mention,mention", async (bot, message) => {
   }
 
   // Picks member from user group
-  if (message.text.includes("pick")) {
-    const messages = [
-      "Please enter the name of the group you want to pick a member from.",
-    ];
-    await bot.reply(message, messages.join("\n"));
+  if (message.text.includes("pick from")) {
+    const userGroup = message.text.split("pick from")[1].trim();
+    const members = await getGroupMembers(userGroup);
 
-    controller.hears(
-      ".*",
-      "message,direct_message,direct_mention,mention",
-      async (bot, message) => {
-        const group = message.text;
-        const members = await getGroupMembers(group);
-        if (members.length > 0) {
-          const member = members[Math.floor(Math.random() * members.length)];
-          await bot.reply(message, `I picked <@${member}>`);
-        } else {
-          await bot.reply(
-            message,
-            `I couldn't find any members in that group. Try using the group handle`
-          );
-        }
-      }
-    );
+    if (members.length === 0) {
+      await bot.reply(
+        message,
+        `I couldn't find any members in the ${userGroup} user group.`
+      );
+    } else {
+      const randomMember = members[Math.floor(Math.random() * members.length)];
+      await bot.reply(message, `I picked <@${randomMember}>`);
+    }
+  }
+
+  // Pick from current channel
+  if (message.text.includes("pick")) {
+    const members = await getChannelMembers(message.channel);
+    if (members.length === 0) {
+      await bot.reply(message, `I couldn't find any members in this channel.`);
+    } else {
+      const randomMember = members[Math.floor(Math.random() * members.length)];
+      await bot.reply(message, `I picked <@${randomMember}>`);
+    }
   }
 });
 
@@ -227,6 +228,21 @@ async function getBotUserByTeam(teamId) {
   } else {
     console.error("Team not found in userCache: ", teamId);
   }
+}
+
+async function getChannelMembers(channelId) {
+  const members = [];
+  const result = await controller.adapter.client.conversations.members({
+    channel: channelId,
+  });
+  if (result.ok) {
+    result.members.forEach((member) => {
+      if (member !== "USLACKBOT") {
+        members.push(member);
+      }
+    });
+  }
+  return members;
 }
 
 // Get members of a Slack group
