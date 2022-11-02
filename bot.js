@@ -106,6 +106,7 @@ controller.on("direct_message,direct_mention,mention", async (bot, message) => {
       "- `hello` - I'll say hello back to you",
       "- `help` or `commands` - I'll show you this list of commands",
       "- `test account` - I'll tell you how to create a test account",
+      "- `pick` - I'll pick a random member",
     ];
     await bot.reply(message, messages.join("\n"));
   }
@@ -124,6 +125,26 @@ controller.on("direct_message,direct_mention,mention", async (bot, message) => {
       "`name.surname+test1@capmo.de`",
     ];
     await bot.reply(message, messages.join("\n"));
+  }
+
+  // Picks member from user group
+  if (message.text.includes("pick")) {
+    const messages = [
+      "Please enter the name of the group you want to pick a member from.",
+    ];
+    await bot.reply(message, messages.join("\n"));
+
+    controller.hears(
+      ".*",
+      "message,direct_message,direct_mention,mention",
+      async (bot, message) => {
+        const group = message.text;
+        const members = await getGroupMembers(group);
+        const randomMember =
+          members[Math.floor(Math.random() * members.length)];
+        await bot.reply(message, randomMember);
+      }
+    );
   }
 });
 
