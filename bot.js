@@ -8,6 +8,10 @@
 const { Botkit } = require("botkit");
 const { BotkitCMSHelper } = require("botkit-plugin-cms");
 const greetings = require("random-greetings");
+const axios = require("axios");
+const dotenv = require("dotenv");
+
+dotenv.config();
 
 // Import a platform-specific adapter for slack.
 
@@ -136,12 +140,13 @@ controller.on("direct_message,direct_mention,mention", async (bot, message) => {
   // Picks member from user group
   if (message.text.includes("pick from")) {
     const userGroup = message.text.split("pick from")[1].trim();
+    console.log(userGroup);
     const members = await getGroupMembers(userGroup);
 
     if (members.length === 0) {
       await bot.reply(
         message,
-        `I couldn't find any members in the ${userGroup} user group.`
+        `I couldn't find any members in the ${userGroup} user group. Try using the group handle instead of the name.`
       );
     } else {
       const randomMember = members[Math.floor(Math.random() * members.length)];
@@ -231,37 +236,46 @@ async function getBotUserByTeam(teamId) {
 }
 
 async function getChannelMembers(channelId) {
-  const members = [];
-  const result = await controller.adapter.client.conversations.members({
-    channel: channelId,
-  });
-  if (result.ok) {
-    result.members.forEach((member) => {
-      if (member !== "USLACKBOT") {
-        members.push(member);
-      }
-    });
-  }
-  return members;
+  const result = await axios.get(
+    "https://slack.com/api/conversations.members",
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.BOT_TOKEN}`,
+      },
+      params: {
+        channel: channelId,
+      },
+    }
+  );
+  return result.data.members;
 }
 
 // Get members of a Slack group
 async function getGroupMembers(group) {
-  const token = process.env.BOT_TOKEN;
-  const response = await axios.get(
-    `https://slack.com/api/usergroups.users.list?token=${token}`
-  );
+  const response = await axios.get("https://slack.com/api/usergroups.list", {
+    headers: {
+      Authorization: `Bearer ${process.env.BOT_TOKEN}`,
+    },
+  });
+  const groups = response.data.usergroups;
   // Look for group name in handle
-  const groupHandle = response.data.usergroups.find(
-    (usergroup) => usergroup.handle === group
-  );
-  // Get group ID
-  const groupId = groupHandle.id;
-  // Get members of group
-  const members = await axios.get(
-    `https://slack.com/api/usergroups.users.list?token=${token}&usergroup=${groupId}`
-  );
-  // Get user names of members
-  const memberNames = members.data.users.map((member) => member.name);
-  return memberNames;
+  const groupHandle = groups.find((usergroup) => usergroup.handle === group);
+
+  if (groupHandle) {
+    const result = await axios.get(
+      "https://slack.com/api/usergroups.users.list",
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.BOT_TOKEN}`,
+        },
+        params: {
+          usergroup: groupHandle.id,
+        },
+      }
+    );
+
+    if (result.ok) {
+      return result.data.users;
+    }
+  }
 }
