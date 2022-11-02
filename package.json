@@ -13,10 +13,10 @@
     "botkit": "^4.15.0",
     "botkit-plugin-cms": "^1.0.3",
     "dotenv": "^16.0.3",
-    "random-greetings": "^1.0.5"
+    "random-greetings": "^1.0.5",
+    "nodemon": "^2.0.20"
   },
   "devDependencies": {
-    "jest": "^29.2.2",
-    "nodemon": "^2.0.20"
+    "jest": "^29.2.2"
   }
 }
