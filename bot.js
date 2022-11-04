@@ -82,7 +82,7 @@ controller.on("direct_message,direct_mention,mention", async (bot, message) => {
   }
 
   // Create channel with everyone in #general but the mentioned user
-  if (message.text.includes("create channel")) {
+  if (message.text.includes("surprise")) {
     if (!message.text.includes("<@")) {
       await bot.reply(
         message,
