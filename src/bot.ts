@@ -1,56 +1,32 @@
-//  __   __  ___        ___
-// |__) /  \  |  |__/ |  |
-// |__) \__/  |  |  \ |  |
-
-// This is the main file for the Capmo Slack bot.
-
-const { Botkit } = require("botkit");
-const { BotkitCMSHelper } = require("botkit-plugin-cms");
-const greetings = require("random-greetings");
-const axios = require("axios");
-const {
+import { Botkit } from "botkit";
+import greetings = require("random-greetings");
+import {
   SlackAdapter,
   SlackMessageTypeMiddleware,
-  SlackEventMiddleware,
-} = require("botbuilder-adapter-slack");
-
-const { MongoDbStorage } = require("botbuilder-storage-mongodb");
+} from "botbuilder-adapter-slack";
+import {
+  createChannel,
+  getBotUserId,
+  getChannelMembers,
+  getSubteamMembers,
+  getUserProfile,
+  inviteUsersToChannel,
+} from "./utils";
 
 require("dotenv").config();
-
-let storage = null;
-if (process.env.MONGO_URI) {
-  storage = mongoStorage = new MongoDbStorage({
-    url: process.env.MONGO_URI,
-  });
-}
-
-async function getBotUserId() {
-  const response = await axios.get("https://slack.com/api/auth.test", {
-    headers: {
-      Authorization: `Bearer ${process.env.BOT_TOKEN}`,
-    },
-  });
-  return response.data.user_id;
-}
 
 const botId = getBotUserId();
 
 const adapter = new SlackAdapter({
   clientSigningSecret: process.env.CLIENT_SIGNING_SECRET,
   botToken: process.env.BOT_TOKEN,
-  getTokenForTeam: {},
-  getBotUserByTeam: {},
 });
 
 adapter.use(new SlackMessageTypeMiddleware());
 
 const controller = new Botkit({
   webhook_uri: "/api/messages",
-
-  adapter: adapter,
-
-  storage,
+  adapter,
 });
 
 // Handle commands directed at the bot
@@ -93,48 +69,23 @@ controller.on("direct_message,direct_mention,mention", async (bot, message) => {
     const mentionedUser = message.text.match(/<@(.*)>/)[1];
 
     // Get User Info
-    const userResponse = await axios.get("https://slack.com/api/users.info", {
-      headers: {
-        Authorization: `Bearer ${process.env.BOT_TOKEN}`,
-      },
-      params: {
-        user: mentionedUser,
-      },
-    });
-    const userName = userResponse.data.user.profile.display_name;
-    const channelName =
-      "temp_surprise-for-" + userName.toLowerCase().replace(/ /g, "-");
+    const userProfile = await getUserProfile(mentionedUser);
+    const userName = userProfile.display_name || userProfile.real_name;
+    const channelName = `temp_surprise-for-${userName
+      .toLowerCase()
+      .replace(/ /g, "-")}`;
 
     const members = await getChannelMembers("C7H5QAT9Q");
     const filteredMembers = members.filter(
       (member) => member !== mentionedUser
     );
 
-    const result = await axios.post(
-      "https://slack.com/api/conversations.create",
-      {
-        name: channelName,
-        is_private: true,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.BOT_TOKEN}`,
-        },
-      }
-    );
-    if (result.data.ok) {
+    const createChannelResult = await createChannel(channelName);
+    if (createChannelResult.data.ok) {
       await bot.reply(message, `Created channel ${channelName}`);
-      const inviteResult = await axios.post(
-        "https://slack.com/api/conversations.invite",
-        {
-          channel: result.data.channel.id,
-          users: filteredMembers.join(","),
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.BOT_TOKEN}`,
-          },
-        }
+      const inviteResult = await inviteUsersToChannel(
+        createChannelResult.data.channel.id,
+        filteredMembers
       );
       if (inviteResult.data.ok) {
         await bot.reply(message, `Invited everyone to ${channelName}`);
@@ -164,16 +115,6 @@ controller.on("direct_message,direct_mention,mention", async (bot, message) => {
     return;
   }
 
-  // Pick user
-  if (message.text.includes("pick")) {
-    if (message.text.includes("<!subteam^")) {
-      await pickFromSubteam();
-    } else {
-      await pickFromCurrentChannel();
-    }
-    return;
-  }
-
   async function pickFromCurrentChannel() {
     const members = await getChannelMembers(message.channel);
     if (members !== undefined) {
@@ -181,7 +122,7 @@ controller.on("direct_message,direct_mention,mention", async (bot, message) => {
       if (filteredMembers.length === 0) {
         await bot.reply(
           message,
-          `I couldn't find any members in the current channel.`
+          "I couldn't find any members in the current channel."
         );
       } else {
         const randomMember =
@@ -191,7 +132,7 @@ controller.on("direct_message,direct_mention,mention", async (bot, message) => {
     } else {
       await bot.reply(
         message,
-        `I couldn't find any members in the current channel. Check this is not a private conversation.`
+        "I couldn't find any members in the current channel. Check this is not a private conversation."
       );
     }
   }
@@ -219,6 +160,16 @@ controller.on("direct_message,direct_mention,mention", async (bot, message) => {
     }
   }
 
+  // Pick user
+  if (message.text.includes("pick")) {
+    if (message.text.includes("<!subteam^")) {
+      await pickFromSubteam();
+    } else {
+      await pickFromCurrentChannel();
+    }
+    return;
+  }
+
   // Default
   await bot.reply(
     message,
@@ -229,102 +180,3 @@ controller.on("direct_message,direct_mention,mention", async (bot, message) => {
 controller.webserver.get("/", (req, res) => {
   res.send(`This app is running Botkit ${controller.version}.`);
 });
-
-let tokenCache = {};
-let userCache = {};
-
-if (process.env.TOKENS) {
-  tokenCache = JSON.parse(process.env.TOKENS);
-}
-
-if (process.env.USERS) {
-  userCache = JSON.parse(process.env.USERS);
-}
-
-async function getTokenForTeam(teamId) {
-  if (tokenCache[teamId]) {
-    return new Promise((resolve) => {
-      setTimeout(function () {
-        resolve(tokenCache[teamId]);
-      }, 150);
-    });
-  } else {
-    console.error("Team not found in tokenCache: ", teamId);
-  }
-}
-
-async function getBotUserByTeam(teamId) {
-  if (userCache[teamId]) {
-    return new Promise((resolve) => {
-      setTimeout(function () {
-        resolve(userCache[teamId]);
-      }, 150);
-    });
-  } else {
-    console.error("Team not found in userCache: ", teamId);
-  }
-}
-
-async function getSubteamMembers(subteamId) {
-  const members = [];
-  const result = await axios.get(
-    "https://slack.com/api/usergroups.users.list",
-    {
-      headers: {
-        Authorization: `Bearer ${process.env.BOT_TOKEN}`,
-      },
-      params: {
-        usergroup: subteamId,
-      },
-    }
-  );
-  if (result.data.ok) {
-    members.push(...result.data.users);
-  }
-  return members;
-}
-
-async function getChannelMembers(channelId) {
-  const result = await axios.get(
-    "https://slack.com/api/conversations.members",
-    {
-      headers: {
-        Authorization: `Bearer ${process.env.BOT_TOKEN}`,
-      },
-      params: {
-        channel: channelId,
-      },
-    }
-  );
-  return result.data.members;
-}
-
-// Get members of a Slack group
-async function getGroupMembers(group) {
-  const response = await axios.get("https://slack.com/api/usergroups.list", {
-    headers: {
-      Authorization: `Bearer ${process.env.BOT_TOKEN}`,
-    },
-  });
-  const groups = response.data.usergroups;
-  // Look for group name in handle
-  const groupHandle = groups.find((usergroup) => usergroup.handle === group);
-
-  if (groupHandle) {
-    const result = await axios.get(
-      "https://slack.com/api/usergroups.users.list",
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.BOT_TOKEN}`,
-        },
-        params: {
-          usergroup: groupHandle.id,
-        },
-      }
-    );
-
-    if (result.ok) {
-      return result.data.users;
-    }
-  }
-}

@@ -1,6 +1,5 @@
-const axios = require("axios");
-const dotenv = require("dotenv");
-dotenv.config();
+require("dotenv").config();
+const { axios } = require("./utils");
 
 test("getting groupId from handle", async () => {
   const response = await axios.get("https://slack.com/api/usergroups.list", {
