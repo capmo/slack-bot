@@ -4,7 +4,7 @@
   "description": "",
   "main": "src/bot.ts",
   "scripts": {
-    "start": "pm2-runtime start ecosystem.config.js --env production",
+    "start": "npx ts-node src/bot.ts",
     "test": "jest"
   },
   "dependencies": {
