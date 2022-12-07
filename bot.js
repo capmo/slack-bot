@@ -5,25 +5,14 @@
 // This is the main file for the Capmo Slack bot.
 
 const { Botkit } = require("botkit");
-const { BotkitCMSHelper } = require("botkit-plugin-cms");
 const greetings = require("random-greetings");
 const axios = require("axios");
 const {
   SlackAdapter,
   SlackMessageTypeMiddleware,
-  SlackEventMiddleware,
 } = require("botbuilder-adapter-slack");
 
-const { MongoDbStorage } = require("botbuilder-storage-mongodb");
-
 require("dotenv").config();
-
-let storage = null;
-if (process.env.MONGO_URI) {
-  storage = mongoStorage = new MongoDbStorage({
-    url: process.env.MONGO_URI,
-  });
-}
 
 async function getBotUserId() {
   const response = await axios.get("https://slack.com/api/auth.test", {
@@ -47,10 +36,7 @@ adapter.use(new SlackMessageTypeMiddleware());
 
 const controller = new Botkit({
   webhook_uri: "/api/messages",
-
-  adapter: adapter,
-
-  storage,
+  adapter,
 });
 
 // Handle commands directed at the bot
@@ -102,8 +88,9 @@ controller.on("direct_message,direct_mention,mention", async (bot, message) => {
       },
     });
     const userName = userResponse.data.user.profile.display_name;
-    const channelName =
-      "temp_surprise-for-" + userName.toLowerCase().replace(/ /g, "-");
+    const channelName = `temp_surprise-for-${userName
+      .toLowerCase()
+      .replace(/ /g, "-")}`;
 
     const members = await getChannelMembers("C7H5QAT9Q");
     const filteredMembers = members.filter(
@@ -244,25 +231,23 @@ if (process.env.USERS) {
 async function getTokenForTeam(teamId) {
   if (tokenCache[teamId]) {
     return new Promise((resolve) => {
-      setTimeout(function () {
+      setTimeout(() => {
         resolve(tokenCache[teamId]);
       }, 150);
     });
-  } else {
-    console.error("Team not found in tokenCache: ", teamId);
   }
+  console.error("Team not found in tokenCache: ", teamId);
 }
 
 async function getBotUserByTeam(teamId) {
   if (userCache[teamId]) {
     return new Promise((resolve) => {
-      setTimeout(function () {
+      setTimeout(() => {
         resolve(userCache[teamId]);
       }, 150);
     });
-  } else {
-    console.error("Team not found in userCache: ", teamId);
   }
+  console.error("Team not found in userCache: ", teamId);
 }
 
 async function getSubteamMembers(subteamId) {
