@@ -4,7 +4,8 @@
   "description": "",
   "scripts": {
     "test": "jest",
-    "start": "node src/bot.js"
+    "start": "node src/bot.js",
+    "lint": "eslint --ext .js src/"
   },
   "dependencies": {
     "axios": "^0.27.2",
