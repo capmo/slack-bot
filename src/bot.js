@@ -81,7 +81,8 @@ controller.on("direct_message,direct_mention,mention", async (bot, message) => {
       );
       return;
     }
-    const mentionedUser = message.text.match(/<@(.*)>/)[1];
+    // Get last match of <@user> in message
+    const mentionedUser = message.text.match(/<@[^>]+>/g).pop();
     createSurpriseChannel(message, mentionedUser, bot);
   }
 
