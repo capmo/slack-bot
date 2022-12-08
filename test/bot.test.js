@@ -28,7 +28,6 @@ test("getting members of a group", async () => {
   );
   expect(result.data.ok).toBe(true);
 
-  console.log(result.data.users);
   const members = result.data.users;
   expect(members.length).toBe(11);
 });
