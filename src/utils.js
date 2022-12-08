@@ -35,6 +35,8 @@ async function getSubteamMembers(subteamId) {
 }
 
 async function pickFromSubteam(message, botId, bot) {
+  bot.changeContext(message.reference);
+
   const subteamId = message.text.split("<!subteam^")[1].split("|")[0];
   if (subteamId !== undefined) {
     const members = await getSubteamMembers(subteamId);
@@ -58,6 +60,8 @@ async function pickFromSubteam(message, botId, bot) {
 }
 
 async function pickFromCurrentChannel(message, botId, bot) {
+  bot.changeContext(message.reference);
+
   const members = await getChannelMembers(message.channel);
   if (members !== undefined) {
     const filteredMembers = members.filter((member) => member !== botId);
