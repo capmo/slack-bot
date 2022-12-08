@@ -95,7 +95,7 @@ async function createSurpriseChannel(mentionedUser, message, bot) {
   let channelName = `temp_surprise-for-${userName
     .toLowerCase()
     .replace(/ /g, "-")}`;
-  channelName += Math.floor(Math.random() * 1000);
+  channelName += `_${Math.floor(Math.random() * 1000)}`;
 
   const members = await getChannelMembers("C7H5QAT9Q");
   const filteredMembers = members.filter((member) => member !== mentionedUser);
