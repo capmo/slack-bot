@@ -80,7 +80,7 @@ async function pickFromCurrentChannel(message, botId, bot) {
 }
 
 async function createSurpriseChannel(mentionedUser, message, bot) {
-  const userResponse = await axios.get("https://slack.com/api/users.info", {
+  const userResponse = await axios.get("https://slack.com/api/users.info?", {
     headers: {
       Authorization: `Bearer ${process.env.BOT_TOKEN}`,
     },
@@ -88,6 +88,7 @@ async function createSurpriseChannel(mentionedUser, message, bot) {
       user: mentionedUser,
     },
   });
+
   const userName = userResponse.data.user.profile.display_name;
   const channelName = `temp_surprise-for-${userName
     .toLowerCase()

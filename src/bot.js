@@ -79,11 +79,16 @@ controller.on("direct_message,direct_mention,mention", async (bot, message) => {
         message,
         "Please mention a user you want to skip in the new channel."
       );
-      return;
+    } else {
+      // Get last match of <@user> in message
+      const mentionedUser = message.text
+        .match(/<@[^>]*>/g)
+        .pop()
+        .slice(2, -1);
+
+      createSurpriseChannel(mentionedUser, message, bot);
     }
-    // Get last match of <@user> in message
-    const mentionedUser = message.text.match(/<@[^>]+>/g).pop();
-    createSurpriseChannel(message, mentionedUser, bot);
+    return;
   }
 
   // Instructions to create test account
