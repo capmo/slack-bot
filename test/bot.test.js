@@ -6,6 +6,7 @@ const {
   getUsername,
   createChannel,
   inviteMembers,
+  getUserList,
 } = require("../src/utils");
 
 const axios = require("axios");
@@ -113,4 +114,45 @@ test("getSubteamMembers", async () => {
   axios.get.mockResolvedValue(response);
   const members = await getSubteamMembers("S03SWJ0L1FY");
   expect(members.length).toBe(2);
+});
+
+test("getUserList", async () => {
+  const response = {
+    data: {
+      ok: true,
+      members: [
+        {
+          id: "U7H5QAT9Q",
+          profile: {
+            display_name: "test",
+          },
+          deleted: false,
+          is_bot: false,
+        },
+        {
+          id: "U7H5QAT9R",
+          profile: {
+            display_name: "test",
+          },
+          deleted: false,
+          is_bot: true,
+        },
+        {
+          id: "U7H5QAT9S",
+          profile: {
+            display_name: "test",
+          },
+          deleted: true,
+          is_bot: false,
+        },
+      ],
+      response_metadata: {
+        next_cursor: "",
+      },
+    },
+  };
+  axios.get.mockResolvedValue(response);
+  const members = await getUserList();
+  expect(members.length).toBe(1);
+  expect(members[0].id).toBe("U7H5QAT9Q");
 });

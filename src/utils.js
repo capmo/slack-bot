@@ -23,6 +23,29 @@ async function getChannelMembers(channelId) {
   return members;
 }
 
+async function getUserList() {
+  const members = [];
+  let cursor = "";
+  let result;
+  do {
+    result = await axios.get("https://slack.com/api/users.list", {
+      headers: {
+        Authorization: `Bearer ${process.env.BOT_TOKEN}`,
+      },
+      params: {
+        cursor,
+      },
+    });
+    if (result.data.ok) {
+      members.push(...result.data.members);
+      cursor = result.data.response_metadata.next_cursor;
+    }
+  } while (cursor !== "");
+  return members.filter(
+    (member) => member.deleted === false && member.is_bot === false
+  );
+}
+
 async function getSubteamMembers(subteamId) {
   const members = [];
   const result = await axios.get(
@@ -91,13 +114,19 @@ async function pickFromCurrentChannel(message, botId, bot) {
   }
 }
 
-async function inviteMembers(bot, message, channelName, id, filteredMembers) {
+async function inviteMembers(
+  bot,
+  message,
+  channelName,
+  channelId,
+  filteredMembers
+) {
   bot.changeContext(message.reference);
 
   const inviteResult = await axios.post(
     "https://slack.com/api/conversations.invite",
     {
-      channel: id,
+      channel: channelId,
       // Max 1000 users
       users: filteredMembers.join(","),
     },
@@ -196,7 +225,9 @@ async function createSurpriseChannel(mentionedUser, message, bot) {
   const userResponse = await getUsername(mentionedUser);
   const userName = userResponse.data.user.profile.display_name;
   const channelName = await generateChannelName(userName);
-  const members = await getChannelMembers("C7H5QAT9Q");
+  const members = await getUserList().then((users) =>
+    users.map((user) => user.id)
+  );
   const filteredMembers = members.filter((member) => member !== mentionedUser);
 
   const id = await createChannel(channelName);
@@ -219,4 +250,5 @@ module.exports = {
   createChannel,
   getUsername,
   inviteMembers,
+  getUserList,
 };

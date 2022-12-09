@@ -3,6 +3,7 @@ const {
   getChannelMembers,
   getSubteamMembers,
   exists,
+  getUserList,
 } = require("../src/utils");
 
 require("dotenv").config();
@@ -28,4 +29,9 @@ test("channel name doesn't exist", async () => {
   const randomChannelName = Math.random().toString(36).substring(7);
   const channelExists = await exists(randomChannelName);
   expect(channelExists).toBe(false);
+});
+
+test("get all users", async () => {
+  const users = await getUserList();
+  expect(users.length).toBeGreaterThan(100);
 });
