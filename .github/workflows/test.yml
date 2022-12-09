@@ -12,3 +12,6 @@ jobs:
           node-version: 19
       - run: npm install
       - run: npm test
+    env:
+      BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+      CLIENT_SIGNING_SECRET: ${{ secrets.CLIENT_SIGNING_SECRET }}
