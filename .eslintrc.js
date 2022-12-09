@@ -5,11 +5,6 @@ module.exports = {
     es2021: true,
   },
   extends: ["airbnb-base", "prettier"],
-  parser: "@typescript-eslint/parser",
-  parserOptions: {
-    ecmaVersion: 12,
-    sourceType: "module",
-  },
   rules: {
     "prettier/prettier": "error",
     "import/extensions": [
@@ -23,7 +18,7 @@ module.exports = {
       },
     ],
   },
-  plugins: ["prettier", "@typescript-eslint"],
+  plugins: ["prettier"],
   settings: {
     "import/resolver": {
       node: {
