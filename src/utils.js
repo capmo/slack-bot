@@ -91,6 +91,30 @@ async function pickFromCurrentChannel(message, botId, bot) {
   }
 }
 
+async function inviteMembers(bot, message, channelName, id, filteredMembers) {
+  bot.changeContext(message.reference);
+
+  const inviteResult = await axios.post(
+    "https://slack.com/api/conversations.invite",
+    {
+      channel: id,
+      // Max 1000 users
+      users: filteredMembers.join(","),
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.BOT_TOKEN}`,
+      },
+    }
+  );
+  if (inviteResult.data.ok) {
+    await bot.reply(message, `Invited everyone to #${channelName}`);
+    return true;
+  }
+  await bot.reply(message, `Failed to invite everyone to #${channelName}`);
+  return false;
+}
+
 async function exists(channelName) {
   const result = await axios.get("https://slack.com/api/conversations.list", {
     headers: {
@@ -130,24 +154,7 @@ async function generateChannelName(userName) {
   return channelName;
 }
 
-async function createSurpriseChannel(mentionedUser, message, bot) {
-  bot.changeContext(message.reference);
-
-  const userResponse = await axios.get("https://slack.com/api/users.info?", {
-    headers: {
-      Authorization: `Bearer ${process.env.BOT_TOKEN}`,
-    },
-    params: {
-      user: mentionedUser,
-    },
-  });
-
-  const userName = userResponse.data.user.profile.display_name;
-  const channelName = await generateChannelName(userName);
-  const members = await getChannelMembers("C7H5QAT9Q");
-  const filteredMembers = members.filter((member) => member !== mentionedUser);
-
-  // Create channel
+async function createChannel(channelName) {
   const result = await axios.post(
     "https://slack.com/api/conversations.create",
     {
@@ -162,26 +169,40 @@ async function createSurpriseChannel(mentionedUser, message, bot) {
   );
 
   if (result.data.ok) {
-    await bot.reply(message, `Created channel ${channelName}`);
+    return result.data.channel.id;
+  }
+  return null;
+}
 
-    const inviteResult = await axios.post(
-      "https://slack.com/api/conversations.invite",
-      {
-        channel: result.data.channel.id,
-        // Max 1000 users
-        users: filteredMembers.join(","),
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.BOT_TOKEN}`,
-        },
-      }
-    );
-    if (inviteResult.data.ok) {
-      await bot.reply(message, `Invited everyone to #${channelName}`);
-    } else {
-      await bot.reply(message, `Failed to invite everyone to #${channelName}`);
-    }
+async function getUsername(mentionedUser) {
+  const result = await axios.get("https://slack.com/api/users.info?", {
+    headers: {
+      Authorization: `Bearer ${process.env.BOT_TOKEN}`,
+    },
+    params: {
+      user: mentionedUser,
+    },
+  });
+
+  if (result.data.ok) {
+    return result.data.user.profile.display_name;
+  }
+  return null;
+}
+
+async function createSurpriseChannel(mentionedUser, message, bot) {
+  bot.changeContext(message.reference);
+
+  const userResponse = await getUsername(mentionedUser);
+  const userName = userResponse.data.user.profile.display_name;
+  const channelName = await generateChannelName(userName);
+  const members = await getChannelMembers("C7H5QAT9Q");
+  const filteredMembers = members.filter((member) => member !== mentionedUser);
+
+  const id = await createChannel(channelName);
+  if (id !== null) {
+    await bot.reply(message, `Created channel ${channelName}`);
+    await inviteMembers(bot, message, channelName, id, filteredMembers);
   } else {
     await bot.reply(message, `Failed to create channel #${channelName}`);
   }
@@ -194,4 +215,8 @@ module.exports = {
   getSubteamMembers,
   getChannelMembers,
   exists,
+  generateChannelName,
+  createChannel,
+  getUsername,
+  inviteMembers,
 };

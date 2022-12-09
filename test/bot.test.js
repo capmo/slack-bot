@@ -1,43 +1,116 @@
-const axios = require("axios");
-const dotenv = require("dotenv");
+require("dotenv").config();
 const {
   getChannelMembers,
   getSubteamMembers,
   exists,
+  getUsername,
+  createChannel,
+  inviteMembers,
 } = require("../src/utils");
 
-dotenv.config();
+const axios = require("axios");
+jest.mock("axios");
 
-test("getting groupId from handle", async () => {
-  const response = await axios.get("https://slack.com/api/usergroups.list", {
-    headers: {
-      Authorization: `Bearer ${process.env.BOT_TOKEN}`,
+test("getting channel id from name", async () => {
+  const response = {
+    data: {
+      ok: true,
+      channels: [
+        {
+          id: "C7H5QAT9Q",
+          name: "general",
+        },
+      ],
     },
-  });
-  const groups = response.data.usergroups;
-  const groupHandle = groups.find((usergroup) => usergroup.handle === "mobile");
-  expect(groupHandle.id).toBe("S03SWJ0L1FY");
+  };
+  axios.get.mockResolvedValue(response);
+  const channelId = await exists("general");
+  expect(channelId).toBe(true);
 });
 
-test("getting members of a group", async () => {
-  // S03SWJ0L1FY is the id of the mobile subteam
-  const members = await getSubteamMembers("S03SWJ0L1FY");
-  expect(members.length).toBe(11);
-});
-
-test("getting members of general", async () => {
-  // C7H5QAT9Q is the id of the general channel
+test("getting members of a channel", async () => {
+  const response = {
+    data: {
+      ok: true,
+      members: ["U7H5QAT9Q", "U7H5QAT9R"],
+      response_metadata: {
+        next_cursor: "",
+      },
+    },
+  };
+  axios.get.mockResolvedValue(response);
   const members = await getChannelMembers("C7H5QAT9Q");
-  expect(members.length).toBeGreaterThan(100);
+  expect(members.length).toBe(2);
 });
 
-test("channel name exists", async () => {
-  const channelExists = await exists("general");
-  expect(channelExists).toBe(true);
+test("getUsername", async () => {
+  const response = {
+    data: {
+      ok: true,
+      user: {
+        name: "test",
+        profile: {
+          display_name: "test",
+        },
+      },
+    },
+  };
+  axios.get.mockResolvedValue(response);
+  const username = await getUsername("U7H5QAT9Q");
+  expect(username).toBe("test");
 });
 
-test("channel name doesn't exist", async () => {
-  const randomChannelName = Math.random().toString(36).substring(7);
-  const channelExists = await exists(randomChannelName);
-  expect(channelExists).toBe(false);
+test("createChannel", async () => {
+  const response = {
+    data: {
+      ok: true,
+      channel: {
+        id: "C7H5QAT9Q",
+      },
+    },
+  };
+  axios.post.mockResolvedValue(response);
+  const channelId = await createChannel("test");
+  expect(channelId).toBe("C7H5QAT9Q");
+});
+
+test("inviteMembers", async () => {
+  const response = {
+    data: {
+      ok: true,
+    },
+  };
+  const bot = {
+    changeContext: jest.fn(),
+    reply: jest.fn(),
+  };
+  const message = {
+    channel: "C7H5QAT9Q",
+    text: "test",
+  };
+  const channelName = "test";
+  const channelId = "C7H5QAT9Q";
+  const filteredMembers = ["U7H5QAT9Q", "U7H5QAT9R"];
+
+  axios.post.mockResolvedValue(response);
+  const result = await inviteMembers(
+    bot,
+    message,
+    channelName,
+    channelId,
+    filteredMembers
+  );
+  expect(result).toBe(true);
+});
+
+test("getSubteamMembers", async () => {
+  const response = {
+    data: {
+      ok: true,
+      users: ["U7H5QAT9Q", "U7H5QAT9R"],
+    },
+  };
+  axios.get.mockResolvedValue(response);
+  const members = await getSubteamMembers("S03SWJ0L1FY");
+  expect(members.length).toBe(2);
 });
