@@ -83,6 +83,45 @@ async function pickFromCurrentChannel(message, botId, bot) {
   }
 }
 
+async function exists(channelName) {
+  const result = await axios.get("https://slack.com/api/conversations.list", {
+    headers: {
+      Authorization: `Bearer ${process.env.BOT_TOKEN}`,
+    },
+    params: {
+      types: "public_channel,private_channel",
+    },
+  });
+  if (result.data.ok) {
+    const { channels } = result.data;
+    const filteredChannels = channels.filter(
+      (channel) => channel.name === channelName
+    );
+    if (filteredChannels.length > 0) {
+      return true;
+    }
+  }
+  return false;
+}
+
+async function generateChannelName(userName) {
+  let channelName = `temp_surprise-for-${userName
+    .toLowerCase()
+    .replace(/ /g, "-")}`;
+
+  let channelExists = await exists(channelName);
+  let index = 1;
+
+  while (channelExists) {
+    index += 1;
+    // eslint-disable-next-line no-await-in-loop
+    channelExists = await exists(`${channelName}-${index}`);
+  }
+
+  channelName += `-${index}`;
+  return channelName;
+}
+
 async function createSurpriseChannel(mentionedUser, message, bot) {
   bot.changeContext(message.reference);
 
@@ -96,17 +135,9 @@ async function createSurpriseChannel(mentionedUser, message, bot) {
   });
 
   const userName = userResponse.data.user.profile.display_name;
-  let channelName = `temp_surprise-for-${userName
-    .toLowerCase()
-    .replace(/ /g, "-")}`;
-  channelName += `_${Math.floor(Math.random() * 1000)}`;
-
+  const channelName = await generateChannelName(userName);
   const members = await getChannelMembers("C7H5QAT9Q");
   const filteredMembers = members.filter((member) => member !== mentionedUser);
-
-  // Log
-  console.log("Creating channel", channelName);
-  console.log("Adding members", filteredMembers);
 
   // Create channel
   const result = await axios.post(
