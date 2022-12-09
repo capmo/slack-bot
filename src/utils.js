@@ -1,18 +1,26 @@
+/* eslint-disable no-await-in-loop */
 const axios = require("axios");
 
 async function getChannelMembers(channelId) {
-  const result = await axios.get(
-    "https://slack.com/api/conversations.members",
-    {
+  const members = [];
+  let cursor = "";
+  let result;
+  do {
+    result = await axios.get("https://slack.com/api/conversations.members", {
       headers: {
         Authorization: `Bearer ${process.env.BOT_TOKEN}`,
       },
       params: {
         channel: channelId,
+        cursor,
       },
+    });
+    if (result.data.ok) {
+      members.push(...result.data.members);
+      cursor = result.data.response_metadata.next_cursor;
     }
-  );
-  return result.data.members;
+  } while (cursor !== "");
+  return members;
 }
 
 async function getSubteamMembers(subteamId) {
@@ -160,6 +168,7 @@ async function createSurpriseChannel(mentionedUser, message, bot) {
       "https://slack.com/api/conversations.invite",
       {
         channel: result.data.channel.id,
+        // Max 1000 users
         users: filteredMembers.join(","),
       },
       {
@@ -182,4 +191,7 @@ module.exports = {
   pickFromSubteam,
   pickFromCurrentChannel,
   createSurpriseChannel,
+  getSubteamMembers,
+  getChannelMembers,
+  exists,
 };

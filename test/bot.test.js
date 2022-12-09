@@ -1,5 +1,11 @@
 const axios = require("axios");
 const dotenv = require("dotenv");
+const {
+  getChannelMembers,
+  getSubteamMembers,
+  exists,
+} = require("../src/utils");
+
 dotenv.config();
 
 test("getting groupId from handle", async () => {
@@ -14,20 +20,24 @@ test("getting groupId from handle", async () => {
 });
 
 test("getting members of a group", async () => {
-  // Look for group name in handle
-  const result = await axios.get(
-    "https://slack.com/api/usergroups.users.list",
-    {
-      headers: {
-        Authorization: `Bearer ${process.env.BOT_TOKEN}`,
-      },
-      params: {
-        usergroup: "S03SWJ0L1FY",
-      },
-    }
-  );
-  expect(result.data.ok).toBe(true);
-
-  const members = result.data.users;
+  // S03SWJ0L1FY is the id of the mobile subteam
+  const members = await getSubteamMembers("S03SWJ0L1FY");
   expect(members.length).toBe(11);
+});
+
+test("getting members of general", async () => {
+  // C7H5QAT9Q is the id of the general channel
+  const members = await getChannelMembers("C7H5QAT9Q");
+  expect(members.length).toBeGreaterThan(100);
+});
+
+test("channel name exists", async () => {
+  const channelExists = await exists("general");
+  expect(channelExists).toBe(true);
+});
+
+test("channel name doesn't exist", async () => {
+  const randomChannelName = Math.random().toString(36).substring(7);
+  const channelExists = await exists(randomChannelName);
+  expect(channelExists).toBe(false);
 });
