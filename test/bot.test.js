@@ -7,6 +7,7 @@ const {
   createChannel,
   inviteMembers,
   getUserList,
+  greetings,
 } = require("../src/utils");
 
 const axios = require("axios");
@@ -155,4 +156,19 @@ test("getUserList", async () => {
   const members = await getUserList();
   expect(members.length).toBe(1);
   expect(members[0].id).toBe("U7H5QAT9Q");
+});
+
+test("greetings", async () => {
+  const response = {
+    data: {
+      type: "hello",
+      greeting: "Molweni",
+      language: "Xhosa",
+    },
+  };
+  axios.get.mockResolvedValue(response);
+  const answer = await greetings();
+  expect(answer).toBe(
+    `${response.data.greeting}! That's ${response.data.type} in ${response.data.language}`
+  );
 });
