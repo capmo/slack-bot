@@ -5,7 +5,6 @@
 // This is the main file for the Capmo Slack bot.
 
 const { Botkit } = require("botkit");
-const greetings = require("random-greetings");
 const axios = require("axios");
 const {
   SlackAdapter,
@@ -15,6 +14,7 @@ const {
   pickFromSubteam,
   pickFromCurrentChannel,
   createSurpriseChannel,
+  greetings,
 } = require("./utils");
 
 require("dotenv").config();
@@ -48,7 +48,7 @@ const controller = new Botkit({
 controller.on("direct_message,direct_mention,mention", async (bot, message) => {
   // Hello
   if (message.text.includes("hello") || message.text.includes("hi")) {
-    await bot.reply(message, greetings.greet());
+    await bot.reply(message, greetings());
     return;
   }
 

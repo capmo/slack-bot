@@ -239,6 +239,11 @@ async function createSurpriseChannel(mentionedUser, message, bot) {
   }
 }
 
+async function greetings() {
+  const result = await axios.get("https://www.greetingsapi.com/random");
+  return `${result.data.greeting}! That's ${result.data.type} in ${result.data.language}`;
+}
+
 module.exports = {
   pickFromSubteam,
   pickFromCurrentChannel,
@@ -251,4 +256,5 @@ module.exports = {
   getUsername,
   inviteMembers,
   getUserList,
+  greetings,
 };
