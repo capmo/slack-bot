@@ -48,7 +48,7 @@ const controller = new Botkit({
 controller.on("direct_message,direct_mention,mention", async (bot, message) => {
   // Hello
   if (message.text.includes("hello") || message.text.includes("hi")) {
-    await bot.reply(message, greetings());
+    await bot.reply(message, await greetings());
     return;
   }
 
