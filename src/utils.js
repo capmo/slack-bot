@@ -252,12 +252,11 @@ async function logEvent(event) {
   axios.post(
     `https://www.google-analytics.com/mp/collect?measurement_id=${process.env.MEASUREMENT_ID}&api_secret=${process.env.GOOGLE_ANALYTICS_API_SECRET}`,
     {
-      client_id: "slackbot",
+      client_id: event.user,
       events: [
         {
           name: event.name,
           params: {
-            user: event.user,
             channel: event.channel,
             text: event.text,
           },
