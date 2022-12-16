@@ -4,20 +4,22 @@
 
 // This is the main file for the Capmo Slack bot.
 
+require("dotenv").config();
+
 const { Botkit } = require("botkit");
 const axios = require("axios");
 const {
   SlackAdapter,
   SlackMessageTypeMiddleware,
 } = require("botbuilder-adapter-slack");
+
 const {
   pickFromSubteam,
   pickFromCurrentChannel,
   createSurpriseChannel,
   greetings,
+  logEvent,
 } = require("./utils");
-
-require("dotenv").config();
 
 async function getBotUserId() {
   const response = await axios.get("https://slack.com/api/auth.test", {
@@ -48,12 +50,24 @@ const controller = new Botkit({
 controller.on("direct_message,direct_mention,mention", async (bot, message) => {
   // Hello
   if (message.text.includes("hello") || message.text.includes("hi")) {
+    logEvent({
+      name: "hello",
+      user: message.user,
+      channel: message.channel,
+      text: message.text,
+    });
     await bot.reply(message, await greetings());
     return;
   }
 
   // Help / Commands
   if (message.text.includes("help") || message.text.includes("commands")) {
+    logEvent({
+      name: "help",
+      user: message.user,
+      channel: message.channel,
+      text: message.text,
+    });
     const messages = [
       "Hello!",
       "",
@@ -78,6 +92,13 @@ controller.on("direct_message,direct_mention,mention", async (bot, message) => {
 
   // Create channel with everyone in #general but the mentioned user
   if (message.text.includes("surprise")) {
+    logEvent({
+      name: "surprise",
+      user: message.user,
+      channel: message.channel,
+      text: message.text,
+    });
+
     if (!message.text.includes("<@")) {
       await bot.reply(
         message,
@@ -97,6 +118,13 @@ controller.on("direct_message,direct_mention,mention", async (bot, message) => {
 
   // Instructions to create test account
   if (message.text.includes("test account")) {
+    logEvent({
+      name: "test account",
+      user: message.user,
+      channel: message.channel,
+      text: message.text,
+    });
+
     const messages = [
       "To create a test account, please follow these steps:",
       "",
@@ -115,6 +143,13 @@ controller.on("direct_message,direct_mention,mention", async (bot, message) => {
 
   // Pick user
   if (message.text.includes("pick")) {
+    logEvent({
+      name: "pick",
+      user: message.user,
+      channel: message.channel,
+      text: message.text,
+    });
+
     if (message.text.includes("<!subteam^")) {
       await pickFromSubteam(message, botId, bot);
     } else {
@@ -124,6 +159,13 @@ controller.on("direct_message,direct_mention,mention", async (bot, message) => {
   }
 
   // Default
+  logEvent({
+    name: "unknown",
+    user: message.user,
+    channel: message.channel,
+    text: message.text,
+  });
+
   await bot.reply(
     message,
     "Sorry, I don't understand. Please type `help` or `commands` to see what I can do."

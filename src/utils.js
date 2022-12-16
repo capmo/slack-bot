@@ -1,4 +1,8 @@
 /* eslint-disable no-await-in-loop */
+
+// Create module utils.js
+// Add the following code to utils.js:
+
 const axios = require("axios");
 
 async function getChannelMembers(channelId) {
@@ -244,6 +248,25 @@ async function greetings() {
   return `${result.data.greeting}! That's ${result.data.type} in ${result.data.language}`;
 }
 
+async function logEvent(event) {
+  axios.post(
+    `https://www.google-analytics.com/mp/collect?measurement_id=${process.env.MEASUREMENT_ID}&api_secret=${process.env.GOOGLE_ANALYTICS_API_SECRET}`,
+    {
+      client_id: "slackbot",
+      events: [
+        {
+          name: event.name,
+          params: {
+            user: event.user,
+            channel: event.channel,
+            text: event.text,
+          },
+        },
+      ],
+    }
+  );
+}
+
 module.exports = {
   pickFromSubteam,
   pickFromCurrentChannel,
@@ -257,4 +280,5 @@ module.exports = {
   inviteMembers,
   getUserList,
   greetings,
+  logEvent,
 };
