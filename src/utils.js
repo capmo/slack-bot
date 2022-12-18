@@ -255,11 +255,16 @@ async function logEvent(event) {
       client_id: event.user,
       events: [
         {
-          name: event.name,
-          params: {
-            channel: event.channel,
-            text: event.text,
-          },
+          name: `command_${event.name}`,
+        },
+        {
+          name: `channel_${event.channel}`,
+        },
+        {
+          name: `user_${event.user}`,
+        },
+        {
+          name: `text_${event.text}`,
         },
       ],
     }
